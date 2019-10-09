@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"reflect"
@@ -52,8 +53,11 @@ func (s *Client) doRequest(req *http.Request) ([]byte, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
+	if len(jar.Cookies(req.URL)) > 0  && jar.Cookies(req.URL)[0].Name == "CXAccessToken" {
+		log.Print("adding token to request")
+		req.Header.Add("x-auth-token", jar.Cookies(req.URL)[0].Value)
+	}
 	client = &http.Client{Transport: tr, Jar: jar}
-
 	resp, err := client.Do(req)
 
 	if err != nil {
